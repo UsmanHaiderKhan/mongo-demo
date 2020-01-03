@@ -49,12 +49,19 @@ async function getCourses() {
 	//Logical Operators
 	// or
 	// and
-	const course = await Course.find({ author: "Nazam", name: "NODE Course" })
+	var pageSize = 2;
+	var pageNumber = 10;
+	const course = await Course.find()
+		// .find({ author: /^Nazam/ }) //String start with ^
+		// .find({ author: /Khan$/i }) //String Ends with or i make case insensitive
+		// .find({ author: /.*Nazam.*/ }) // start with 0 or all Numbers
 		.limit(10)
+		.skip((pageSize - 2) * pageNumber)
 		// .or ([{object},{name:'usman'},{}])
 		// .and ([{name:'Arslan'},{},{}])
 		.sort({ name: -1 }) //1 ascending Order -1 descending ORder
-		.select({ name: 1, tags: 1 });
+		// .select({ name: 1, tags: 1 });
+		.count();
 	console.log(course);
 }
 getCourses();
