@@ -10,11 +10,17 @@ mongoose
 //Now we write database schema
 
 const courseSchema = new mongoose.Schema({
-	name: String,
+	name: { type: String, required: true },
 	author: String,
 	tags: [String],
 	date: { type: Date, default: Date.now },
-	isPublished: Boolean
+	isPublished: Boolean,
+	price: {
+		type: Number,
+		required: function() {
+			return this.isPublished;
+		}
+	}
 });
 
 //Now we create the class Course
@@ -22,16 +28,20 @@ const Course = mongoose.model("course", courseSchema);
 
 async function createCourse() {
 	const course = new Course({
-		name: "Angular Course",
-		author: "Muskan",
-		tags: ["Angular", "frontend"],
-		isPublished: true
+		name: "Android Course", //required Validation
+		author: "Huzaifa",
+		tags: ["Android", "Mobile"],
+		isPublished: true,
+		price: 15
 	});
-
-	const result = await course.save();
-	console.log(result);
+	try {
+		const result = await course.save();
+		console.log(result);
+	} catch (err) {
+		console.log(err.message);
+	}
 }
-// createCourse();
+createCourse();
 
 //Get Data from Database
 
@@ -56,6 +66,7 @@ async function getCourses() {
 		// .find({ author: /Khan$/i }) //String Ends with or i make case insensitive
 		// .find({ author: /.*Nazam.*/ }) // start with 0 or all Numbers
 		.limit(10)
+
 		.skip((pageSize - 2) * pageNumber)
 		// .or ([{object},{name:'usman'},{}])
 		// .and ([{name:'Arslan'},{},{}])
@@ -64,4 +75,44 @@ async function getCourses() {
 		.count();
 	console.log(course);
 }
-getCourses();
+// getCourses();
+
+async function updateCourse(id) {
+	const course = await Course.findById(id);
+	if (!course) {
+		console.log("No Course Find At ALl..");
+		return;
+	}
+	course.isPublished = true;
+	course.author = "JackJhone";
+	const result = await course.save();
+	console.log(result);
+}
+// updateCourse("5e0de8fc029c013d2c52032f");
+//Direct Update Method
+
+async function updateCourse(id) {
+	const course = await Course.findByIdAndUpdate(
+		id,
+		{
+			$set: {
+				author: "Usmankhan",
+				isPublished: true
+			}
+		},
+		{ new: true }
+	);
+	console.log(course);
+}
+// updateCourse("5e0de8fc029c013d2c52032f");
+
+//Delete the Course by Id
+
+async function deleteCourse(id) {
+	// const result = await Course.deleteOne({ _id: id });
+	// const result = await Course.deleteMany({ _id: id });
+	const result = await Course.findByIdAndDelete(id);
+
+	console.log(result);
+}
+// deleteCourse("5e0de8fc029c013d2c52032f");
