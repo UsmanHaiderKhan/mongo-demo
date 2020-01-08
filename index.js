@@ -10,38 +10,75 @@ mongoose
 //Now we write database schema
 
 const courseSchema = new mongoose.Schema({
-	name: { type: String, required: true },
+	name: {
+		type: String,
+		required: true,
+		minlength: 5,
+		maxlength: 255
+		// match: /pattern/i
+	},
+	category: [String],
+	// category:{
+	// 	enum: ["web","android","networking"],
+	// 	required: true,
+	// 	type: String,
+	// 	lowercase: true,
+	// 	uppercase:true,
+	// 	trim: true
+	// },
 	author: String,
-	tags: [String],
+	// tags: [String],
+	//custom validator
+	tags: {
+		type: Array,
+		validate: {
+			isAsync: true,
+			validator: function(value, callback) {
+				setTimeout(() => {
+					const result = value && value.length > 0;
+					callback(result);
+				}, 4000);
+			},
+			message: "Course Should Have at Least 1 Tag..."
+		}
+	},
 	date: { type: Date, default: Date.now },
 	isPublished: Boolean,
 	price: {
 		type: Number,
-		required: function() {
+		required: () => {
 			return this.isPublished;
-		}
+		},
+		min: 10,
+		max: 20,
+		get: v => Math.round(v),
+		set: v => Math.round(v)
 	}
 });
 
 //Now we create the class Course
-const Course = mongoose.model("course", courseSchema);
+const Course = mongoose.model("Course", courseSchema);
 
-async function createCourse() {
-	const course = new Course({
-		name: "Android Course", //required Validation
-		author: "Huzaifa",
-		tags: ["Android", "Mobile"],
-		isPublished: true,
-		price: 15
-	});
-	try {
-		const result = await course.save();
-		console.log(result);
-	} catch (err) {
-		console.log(err.message);
-	}
-}
-createCourse();
+// async function createCourse() {
+// 	const course = new Course({
+// 		name: "AndroidCourse",
+// 		category: ["Android", "backend"], //required Validation
+// 		author: "Huzaifa",
+// 		tags: ["MobileUi"],
+// 		isPublished: true,
+// 		price: 15.7
+// 	});
+// 	try {
+// 		const result = await course.save();
+// 		console.log(result);
+// 	} catch (ex) {
+// 		for (field in ex.errors) console.log(ex.errors[field].message);
+
+// 		// console.log(err.message);
+// 		return;
+// 	}
+// }
+// createCourse();
 
 //Get Data from Database
 
@@ -61,21 +98,20 @@ async function getCourses() {
 	// and
 	var pageSize = 2;
 	var pageNumber = 10;
-	const course = await Course.find()
+	const courses = await Course.find({ _id: "5e15a5c766efa039f8d67e72" })
 		// .find({ author: /^Nazam/ }) //String start with ^
 		// .find({ author: /Khan$/i }) //String Ends with or i make case insensitive
 		// .find({ author: /.*Nazam.*/ }) // start with 0 or all Numbers
 		.limit(10)
-
-		.skip((pageSize - 2) * pageNumber)
+		// .skip((pageSize - 2) * pageNumber)
 		// .or ([{object},{name:'usman'},{}])
 		// .and ([{name:'Arslan'},{},{}])
-		.sort({ name: -1 }) //1 ascending Order -1 descending ORder
-		// .select({ name: 1, tags: 1 });
-		.count();
-	console.log(course);
+		.sort({ name: -1 }); //1 ascending Order -1 descending ORder
+	// .select({ name: 1, tags: 1 });
+	// .count();
+	console.log(courses[0].price);
 }
-// getCourses();
+getCourses();
 
 async function updateCourse(id) {
 	const course = await Course.findById(id);
